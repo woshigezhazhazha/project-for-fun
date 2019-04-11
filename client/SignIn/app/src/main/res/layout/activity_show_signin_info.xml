@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.ShowSigninInfo">
+
+    <include layout="@layout/title_common"/>
+
+    <LinearLayout
+        android:id="@+id/ll_check"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="48dp">
+
+        <Spinner
+            android:id="@+id/sp_checkKind"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical">
+        </Spinner>
+
+        <Spinner
+            android:id="@+id/sp_checkClass"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical">
+        </Spinner>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/colorGray"
+        android:layout_below="@id/ll_check"/>
+
+    <ListView
+        android:id="@+id/lv_checkList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    </ListView>
+
+    <Button
+        android:id="@+id/btn_check"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="查询"
+        android:textColor="@color/colorWhite"
+        android:background="@color/colorPrimary"
+        android:layout_gravity="center_vertical"
+        android:layout_alignParentBottom="true"/>
+
+</RelativeLayout>
