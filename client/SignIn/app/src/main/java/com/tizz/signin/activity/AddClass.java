@@ -1,6 +1,7 @@
 package com.tizz.signin.activity;
 
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -110,12 +111,16 @@ public class AddClass extends AppCompatActivity implements View.OnClickListener 
                      DBUtils dbUtils=new DBUtils(AddClass.this,
                              "userInfo.db",null,2);
                      SQLiteDatabase db=dbUtils.getWritableDatabase();
-                     db.execSQL("insert into TeacherClass(className) values(?)",
+                     Cursor cursor=db.rawQuery("select * from StudentClass where className=?",
                              new String[]{classname});
-                     //set this class for the first class
-                     SharedPreferences.Editor editor=getSharedPreferences("userInfo",MODE_PRIVATE).edit();
-                     editor.putString("firstClass",classname);
-                     editor.commit();
+                     if(!cursor.moveToFirst()){
+                         db.execSQL("insert into StudentClass(className) values(?)",
+                                 new String[]{classname});
+                         //set this class for the first class
+                         SharedPreferences.Editor editor=getSharedPreferences("userInfo",MODE_PRIVATE).edit();
+                         editor.putString("firstClass",classname);
+                         editor.commit();
+                     }
                  }
 
                  socket.close();

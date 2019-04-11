@@ -14,36 +14,35 @@
         android:layout_height="400dp"
         android:background="@drawable/background">
 
-        <TextView
-            android:id="@+id/tv_currentTime"
+        <Spinner
+            android:id="@+id/sp_classList"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="24sp"
-            android:textColor="@color/colorWhite"
             android:layout_marginTop="50dp"
-            android:layout_centerHorizontal="true"/>
+            android:layout_centerHorizontal="true"
+            android:visibility="invisible"
+            android:theme="@style/SpStyle">
+        </Spinner>
 
         <TextView
             android:id="@+id/tv_signinTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="签到时间:"
-            android:textSize="16sp"
+            android:textSize="24sp"
             android:visibility="invisible"
             android:textColor="@color/colorWhite"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="200dp"/>
 
         <TextView
-            android:id="@+id/tv_signinNum"
+            android:id="@+id/tv_currentTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="你是第一位签到的人！"
-            android:textColor="@color/colorWhite"
             android:textSize="16sp"
-            android:visibility="invisible"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="350dp"/>
+            android:textColor="@color/colorWhite"
+            android:layout_marginTop="300dp"
+            android:layout_centerHorizontal="true"/>
 
     </RelativeLayout>
 

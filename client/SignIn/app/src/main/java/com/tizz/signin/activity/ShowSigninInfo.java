@@ -13,7 +13,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -50,7 +49,6 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
     //for sql
-    private String studentId;
     private int year;
     private int month;
     private int day;
@@ -93,31 +91,8 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 stringKind=parent.getItemAtPosition(position).toString();
-                if(stringKind.equals("学生")){
-                    final EditText stuName=new EditText(ShowSigninInfo.this);
-                    stuName.setFocusable(true);
-                    final AlertDialog alertDialog=new AlertDialog.Builder(ShowSigninInfo.this)
-                            .setTitle("输入学生学号")
-                            .setView(stuName)
-                            .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    studentId=stuName.getText().toString();
-                                    if(studentId==null){
-                                        Toast.makeText(ShowSigninInfo.this,"请输入学生姓名！",
-                                                Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            })
-                            .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                }
-                            })
-                            .create();
-                    alertDialog.show();
-                }
-                else if(stringKind.equals("学院")){
+
+                if(stringKind.equals("学院查询")){
                     Spinner spinner=new Spinner(ShowSigninInfo.this);
                     ArrayList<String> majors=new ArrayList<>();
                     majors.add("哲学");
@@ -171,7 +146,7 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                             .create();
                     alertDialog.show();
                 }
-                else if(stringKind.equals("时间")){
+                else if(stringKind.equals("时间查询")){
                     final DatePicker datePicker=new DatePicker(ShowSigninInfo.this);
                     datePicker.setMaxDate(System.currentTimeMillis());
                     final AlertDialog alertDialog=new AlertDialog.Builder(ShowSigninInfo.this)
@@ -222,10 +197,10 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
     }
 
     private void initKindAdapter(){
-        kindList.add("汇总");
-        kindList.add("学生");
-        kindList.add("学院");
-        kindList.add("时间");
+        kindList.add("详细信息");
+        kindList.add("学生汇总");
+        kindList.add("学院查询");
+        kindList.add("时间查询");
         kindList.add("查询方式");
         MajorAdapter kindAdapter=new MajorAdapter(this,
                 R.layout.support_simple_spinner_dropdown_item,kindList);
@@ -248,8 +223,11 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                 break;
             case R.id.btn_check:
                 //check if the input info is complete
-                if(!spinnerHasInfo())
+                if(!spinnerHasInfo()){
+                    Toast.makeText(ShowSigninInfo.this,"请先完善查询条件!",
+                            Toast.LENGTH_SHORT).show();
                     break;
+                }
                 //clear old data
                 if(infoShow.size()!=0){
                     infoShow.clear();
@@ -284,8 +262,8 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                 }
                 inputStream=new DataInputStream(socket.getInputStream());
                 outputStream=new DataOutputStream(socket.getOutputStream());
-                if(stringKind.equals("汇总")){
-                    outputStream.writeUTF("checkAll");
+                if(stringKind.equals("学生汇总")){
+                    outputStream.writeUTF("checkStudent");
                     outputStream.writeUTF(stringClass);
                     String result=inputStream.readUTF();
                     while(!result.equals("###the sigin info for all students is over!!!")){
@@ -297,25 +275,20 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                     else
                         return 4;
                 }
-                else if(stringKind.equals("学生")){
-                    if(studentId !=null){
-                        outputStream.writeUTF("checkStudent");
-                        outputStream.writeUTF(stringClass);
-                        outputStream.writeUTF(studentId);
-                        String result=inputStream.readUTF();
-                        while(!result.equals("###the sigin info for this student is over!!!")){
-                            infoShow.add(result);
-                            result=inputStream.readUTF();
-                        }
-                        if(infoShow.size()==0)
-                            return -4;
-                        else
-                            return 1;
+                else if(stringKind.equals("详细信息")){
+                    outputStream.writeUTF("checkAllInfo");
+                    outputStream.writeUTF(stringClass);
+                    String result=inputStream.readUTF();
+                    while(!result.equals("###the sigin info for all info is over!!!")){
+                        infoShow.add(result);
+                        result=inputStream.readUTF();
                     }
+                    if(infoShow.size()==0)
+                        return -4;
                     else
-                        return -2;
+                        return 1;
                 }
-                else if(stringKind.equals("学院")){
+                else if(stringKind.equals("学院查询")){
                     if(major!=null){
                         outputStream.writeUTF("checkMajor");
                         outputStream.writeUTF(stringClass);
@@ -333,7 +306,7 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                     else
                         return -3;
                 }
-                else if(stringKind.equals("时间")){
+                else if(stringKind.equals("时间查询")){
                     outputStream.writeUTF("checkTime");
                     outputStream.writeUTF(stringClass);
                     outputStream.writeInt(year);
@@ -392,16 +365,12 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                     Toast.makeText(ShowSigninInfo.this,"无法连接网络!",
                             Toast.LENGTH_SHORT).show();
                     break;
-                case -2:
-                    Toast.makeText(ShowSigninInfo.this,"没有输入学生姓名!",
-                            Toast.LENGTH_SHORT).show();
-                    break;
                 case -3:
                     Toast.makeText(ShowSigninInfo.this,"没有选择学院!",
                             Toast.LENGTH_SHORT).show();
                     break;
                 case -4:
-                    Toast.makeText(ShowSigninInfo.this,"没有该学生的签到信息!",
+                    Toast.makeText(ShowSigninInfo.this,"该课堂暂无签到信息!",
                             Toast.LENGTH_SHORT).show();
                     break;
                 case -5:
@@ -413,7 +382,7 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                             Toast.LENGTH_SHORT).show();
                     break;
                 case -7:
-                    Toast.makeText(ShowSigninInfo.this,"该课堂尚无签到信息!",
+                    Toast.makeText(ShowSigninInfo.this,"该课堂暂无签到信息!",
                             Toast.LENGTH_SHORT).show();
                     break;
             }

@@ -117,7 +117,7 @@ public class SocketThread implements Runnable {
 				}
 				else{
 					//create a signin info table for this class 
-					String classTable="create table "+className+"课堂签到信息(stuNum int,siginTime datetime)";
+					String classTable="create table "+className+"课堂签到信息(stuNum int,signinTime datetime)";
 					int createClassTable=DBUtils.createTable(connection,classTable);
 					
 					//create a talbe to show students who add this class
@@ -201,7 +201,7 @@ public class SocketThread implements Runnable {
 			
 			else if(cmdkind.equals("signin")){
 				//get system time first
-				Date time=new Date(System.currentTimeMillis());
+				Date time=new Date(System.currentTimeMillis());	
 				int classOpen=0;
 				double classLatitude=0;
 				double classLongitude=0;
@@ -217,10 +217,12 @@ public class SocketThread implements Runnable {
 					//check the location
 					double userLatitude=inputStream.readDouble();
 					double userLongitude=inputStream.readDouble();
+					/*
 					if(!DistanceUtils.isBetweenDistance(classLongitude, classLatitude, userLongitude, userLatitude)){
 						outputStream.writeInt(-3);
 						return;
 					}
+					*/
 					
 					int stuNum=inputStream.readInt();
 					
@@ -228,6 +230,9 @@ public class SocketThread implements Runnable {
 					int result=DBUtils.insert(connection, insertSignin);
 					if(result>0){
 						outputStream.writeInt(1);
+						SimpleDateFormat df=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+						//return signin time to app
+						outputStream.writeUTF(df.format(time));
 					}
 					else{
 						outputStream.writeInt(-4);
@@ -255,41 +260,41 @@ public class SocketThread implements Runnable {
 			}
 			
 			
-			else if(cmdkind.equals("checkAll")){
+			else if(cmdkind.equals("checkStudent")){
 				String className=inputStream.readUTF();
-				String getData="select name,idnum,count(stuNum) "
+				String getData="select studentReg.name,studentReg.idnum,studentReg.major,count("+className+"课堂签到信息.stuNum) as counts "
 						+ "from studentReg,"+className+"课堂签到信息 "
 								+ "where studentReg.idnum="+className+"课堂签到信息.stuNum "
-										+ "group by "+className+"课堂签到信息.stuNum";
+										+ "group by studentReg.idnum,studentReg.name,studentReg.major";
 				resultSet=DBUtils.select(connection, getData);
 				while(resultSet.next()){
-					String name=resultSet.getString("name");
-					String stuid=resultSet.getString("stuId");
-					int count=resultSet.getInt(3);
-					String dataReturned=name+"("+stuid+") 签到"+count+"次";
+					String name=resultSet.getString("studentReg.name");
+					String stuid=resultSet.getString("studentReg.stuId");
+					String major=resultSet.getString("studentReg.major");
+					int count=resultSet.getInt("counts");
+					String dataReturned=name+"("+stuid+")("+major+")签到"+count+"次";
 					outputStream.writeUTF(dataReturned);
 				}
 				outputStream.writeUTF("###the sigin info for all students is over!!!");
 			}
 			
 			
-            else if(cmdkind.equals("checkStudent")){
+            else if(cmdkind.equals("checkAllInfo")){
             	String className=inputStream.readUTF();
-            	String studentId=inputStream.readUTF();
-            	String getData="select name,signinTime "
-            			+ "from "+className+"课堂学生信息,"+className+"课堂签到信息,studentReg "
-            					+ "where "+className+"课堂学生信息.stuId=studentReg.idnum='"+studentId+"' "
-            							+ "and "+className+"课堂签到信息.stuNum=studentReg.num";
+            	String getData="select studentReg.name,studentReg.idnum,"+className+"课堂签到信息.signinTime "
+            			+ "from "+className+"课堂签到信息,studentReg "
+            					+ "where "+className+"课堂签到信息.stuNum=studentReg.num";
             	SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             	resultSet=DBUtils.select(connection, getData);
             	while(resultSet.next()){
             			String name=resultSet.getString("name");
+            			String stuid=resultSet.getString("idnum");
             			Date date=resultSet.getDate("signinTime");
             			String time=df.format(date);
-            			String dataReturned=name+" 签到:"+time;
+            			String dataReturned=name+"("+stuid+") 签到:"+time;
             			outputStream.writeUTF(dataReturned);
             	}
-            	outputStream.writeUTF("###the sigin info for this student is over!!!");
+            	outputStream.writeUTF("###the sigin info for all info is over!!!");
 			}
 			
 			

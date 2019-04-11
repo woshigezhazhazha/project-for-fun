@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity.ShowSigninInfo">
+    tools:context=".activity.StuSigninInfo"
+    android:orientation="vertical">
 
     <include layout="@layout/title_common"/>
 
@@ -16,20 +17,21 @@
         android:layout_marginTop="48dp">
 
         <Spinner
-            android:id="@+id/sp_checkKind"
+            android:id="@+id/sp_class"
             android:layout_width="0dp"
             android:layout_height="45dp"
             android:layout_weight="1"
             android:layout_gravity="center_vertical">
         </Spinner>
 
-        <Spinner
-            android:id="@+id/sp_checkClass"
-            android:layout_width="0dp"
+        <Button
+            android:id="@+id/btn_check"
+            android:layout_width="wrap_content"
             android:layout_height="45dp"
-            android:layout_weight="1"
-            android:layout_gravity="center_vertical">
-        </Spinner>
+            android:text="查询"
+            android:textColor="@color/colorWhite"
+            android:background="@color/colorPrimary"
+            android:layout_gravity="center_vertical" />
 
     </LinearLayout>
 
@@ -46,14 +48,5 @@
         android:layout_marginTop="100dp">
     </ListView>
 
-    <Button
-        android:id="@+id/btn_check"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="查询"
-        android:textColor="@color/colorWhite"
-        android:background="@color/colorPrimary"
-        android:layout_gravity="center_vertical"
-        android:layout_alignParentBottom="true"/>
 
 </RelativeLayout>

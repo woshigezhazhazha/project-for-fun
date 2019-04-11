@@ -5,12 +5,16 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorAccent">@color/colorPrimary</item>
     </style>
 
     <style
         name="TitleTheme"
         parent="android:Theme.DeviceDefault.Light.Dialog.NoActionBar">
+    </style>
+
+    <style name="SpStyle">
+        <item name="android:colorControlNormal">#FFFFFF</item>
     </style>
 
 </resources>

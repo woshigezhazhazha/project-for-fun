@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.AutoSignin">
+
+    <include layout="@layout/title_common"/>
+
+    <TextView
+        android:id="@+id/tv_autoInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="自动签到未开启"
+        android:textColor="@color/colorBlack"/>
+
+    <Button
+        android:id="@+id/btn_autoSignin"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/btn_shape"
+        android:text="开启"
+        android:textColor="@color/colorWhite"
+        android:layout_below="@id/tv_autoInfo"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"/>
+
+</RelativeLayout>

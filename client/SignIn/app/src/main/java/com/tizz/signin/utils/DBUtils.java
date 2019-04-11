@@ -11,8 +11,7 @@ public class DBUtils extends SQLiteOpenHelper {
             "timeLimit text)";
 
     public static final String createStudentClassTable="create table StudentClass(" +
-            "className text," +
-            "teacherName text)";
+            "className text)";
 
     public static final String createStudentSigninTable="create table StudentSignin(" +
             "className text," +

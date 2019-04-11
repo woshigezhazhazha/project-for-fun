@@ -3,6 +3,9 @@ package com.tizz.signin.activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -10,17 +13,22 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.tizz.signin.MajorAdapter;
 import com.tizz.signin.R;
 import com.tizz.signin.utils.App;
+import com.tizz.signin.utils.DBUtils;
 import com.tizz.signin.utils.LocationUtils;
 import com.tizz.signin.utils.ProgressDialogUtils;
 import com.tizz.signin.utils.SocketUtils;
@@ -31,6 +39,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -48,9 +57,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DataOutputStream outputStream;
     private DataInputStream inputStream;
     private int stuNum;
-    private String sTime="2019";
 
     private static final int UPDATE_TIME=1;
+
+    private Spinner spinner;
+    private ArrayList<String> classList=new ArrayList<>();
 
 
     @Override
@@ -61,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         App.getInstance().addActivity(this);
         initViews();
         setLogined();
+        initSpinner();
     }
 
 
@@ -91,6 +103,94 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void initSpinner(){
+        if(isLogined){
+            SharedPreferences sp=getSharedPreferences("userInfo",MODE_PRIVATE);
+            final String firstclass=sp.getString("firstClass","");
+            if(!firstclass.equals("")){
+                classList.add(firstclass);
+            }
+            DBUtils dbUtils=new DBUtils(MainActivity.this,"userInfo.db",null,2);
+            SQLiteDatabase db=dbUtils.getWritableDatabase();
+            if(isStudent){
+                Cursor cursor=db.query("StudentClass",
+                        null,null,null,null,null,null);
+                if(cursor.moveToFirst()){
+                    do{
+                        String name=cursor.getString(cursor.getColumnIndex("className"));
+                        classList.add(name);
+                    }while (cursor.moveToNext());
+                }
+                cursor.close();
+                if(classList.size()!=0){
+                    MajorAdapter adapter=new MajorAdapter(this,
+                            R.layout.support_simple_spinner_dropdown_item,classList);
+                    spinner.setAdapter(adapter);
+                    spinner.setSelection(classList.size()-1,true);
+                    spinner.setVisibility(View.VISIBLE);
+                    spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            TextView tv = (TextView) view;
+                            tv.setTextColor(Color.WHITE);
+                            tv.setGravity(Gravity.CENTER);
+                            String newFirst=parent.getItemAtPosition(position).toString();
+                            if(!newFirst.equals(firstclass)){
+                                SharedPreferences.Editor editor=getSharedPreferences("userInfo",
+                                        MODE_PRIVATE).edit();
+                                editor.putString("firstClass",newFirst);
+                                editor.commit();
+                            }
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+
+                        }
+                    });
+                }
+            }
+            else{
+                Cursor cursor=db.query("TeacherClass",
+                        null,null,null,null,null,null);
+                if(cursor.moveToFirst()){
+                    do{
+                        String name=cursor.getString(cursor.getColumnIndex("className"));
+                        classList.add(name);
+                    }while (cursor.moveToNext());
+                }
+                cursor.close();
+                if(classList.size()!=0){
+                    MajorAdapter adapter=new MajorAdapter(this,
+                            R.layout.support_simple_spinner_dropdown_item,classList);
+                    spinner.setAdapter(adapter);
+                    //spinner.setSelection(classList.size()-1,true);
+                    spinner.setVisibility(View.VISIBLE);
+                    spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                            TextView tv = (TextView) view;
+                            tv.setTextColor(Color.WHITE);
+                            tv.setGravity(Gravity.CENTER);
+                            String newFirst=parent.getItemAtPosition(position).toString();
+                            if(!newFirst.equals(firstclass)){
+                                SharedPreferences.Editor editor=getSharedPreferences("userInfo",
+                                        MODE_PRIVATE).edit();
+                                editor.putString("firstClass",newFirst);
+                                editor.commit();
+                            }
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parent) {
+
+                        }
+                    });
+                }
+            }
+        }
+    }
+
     private Handler handler=new Handler(){
         @Override
         public void handleMessage(Message message){
@@ -111,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         signIn.setOnClickListener(this);
         currentTime=(TextView)findViewById(R.id.tv_currentTime);
         signinTime=(TextView)findViewById(R.id.tv_signinTime);
-        signinNum=(TextView)findViewById(R.id.tv_signinNum);
+        spinner=(Spinner)findViewById(R.id.sp_classList);
 
         new Thread(new Runnable() {
             @Override
@@ -220,6 +320,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     outputStream.writeDouble(longitude);
                     outputStream.writeInt(stuNum);
                     result=inputStream.readInt();
+                    if(result==1){
+                        String time=inputStream.readUTF();
+                        DBUtils dbUtils=new DBUtils(MainActivity.this,
+                                "userInfo.db",null,2);
+                        SQLiteDatabase db=dbUtils.getWritableDatabase();
+                        db.execSQL("insert into StudentSignin(className,signinTime) values(?,?)",
+                                new String[]{className,time});
+                    }
                 }
                 else{
                     outputStream.writeUTF("startSignin");

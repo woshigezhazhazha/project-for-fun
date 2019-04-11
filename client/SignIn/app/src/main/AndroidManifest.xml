@@ -16,7 +16,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.ShowSigninInfo"></activity>
+        <activity android:name=".activity.AutoSignin"></activity>
+        <activity android:name=".activity.StuSigninInfo" />
+        <activity android:name=".activity.ShowSigninInfo" />
         <activity android:name=".activity.ClassDetails" />
         <activity android:name=".activity.MyClass" />
         <activity android:name=".activity.AddClass" />

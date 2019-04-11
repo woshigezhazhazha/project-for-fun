@@ -16,6 +16,8 @@ public class StuSetting extends AppCompatActivity implements View.OnClickListene
     private TextView title;
     private LinearLayout addClass;
     private LinearLayout reglog;
+    private LinearLayout signinInfo;
+    private LinearLayout autoSignin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +36,10 @@ public class StuSetting extends AppCompatActivity implements View.OnClickListene
         addClass.setOnClickListener(this);
         reglog=(LinearLayout)findViewById(R.id.ll_reglog2);
         reglog.setOnClickListener(this);
+        signinInfo=(LinearLayout)findViewById(R.id.ll_signinInfo);
+        signinInfo.setOnClickListener(this);
+        autoSignin=(LinearLayout)findViewById(R.id.ll_autoSignin);
+        autoSignin.setOnClickListener(this);
     }
 
     @Override
@@ -49,6 +55,14 @@ public class StuSetting extends AppCompatActivity implements View.OnClickListene
             case R.id.ll_addClass2:
                 Intent intent2=new Intent(StuSetting.this, AddClass.class);
                 startActivity(intent2);
+                break;
+            case R.id.ll_signinInfo:
+                Intent intent3=new Intent(StuSetting.this, StuSigninInfo.class);
+                startActivity(intent3);
+                break;
+            case R.id.ll_autoSignin:
+                Intent intent4=new Intent(StuSetting.this, AutoSignin.class);
+                startActivity(intent4);
                 break;
         }
     }
