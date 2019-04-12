@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView signinNum;
     private boolean isLogined=false;
     private boolean isStudent=true;
+    private boolean autoSignin=false;
     private Location location;
     private double latitude;
     private double longitude;
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Spinner spinner;
     private ArrayList<String> classList=new ArrayList<>();
+    private String firstClass;
 
 
     @Override
@@ -73,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initViews();
         setLogined();
         initSpinner();
+        new AutoSigninTask().execute();
     }
 
 
@@ -82,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         isLogined=sharedPreferences.getBoolean("isLogined",false);
         isStudent=sharedPreferences.getBoolean("isStudent",true);
         stuNum=sharedPreferences.getInt("userid",0);
+        autoSignin=sharedPreferences.getBoolean("autoSignin",false);
         if(!isLogined){
             final AlertDialog alertDialog=new AlertDialog.Builder(this)
                     .setTitle("提示")
@@ -106,9 +110,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initSpinner(){
         if(isLogined){
             SharedPreferences sp=getSharedPreferences("userInfo",MODE_PRIVATE);
-            final String firstclass=sp.getString("firstClass","");
-            if(!firstclass.equals("")){
-                classList.add(firstclass);
+            firstClass=sp.getString("firstClass","");
+            if(!firstClass.equals("")){
+                classList.add(firstClass);
                 DBUtils dbUtils=new DBUtils(MainActivity.this,"userInfo.db",null,2);
                 SQLiteDatabase db=dbUtils.getWritableDatabase();
                 if(isStudent){
@@ -117,11 +121,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if(cursor.moveToFirst()){
                         do{
                             String name=cursor.getString(cursor.getColumnIndex("className"));
-                            if(!name.equals(firstclass)){
+                            if(!name.equals(firstClass)){
                                 classList.add(name);
                             }
                         }while (cursor.moveToNext());
-                        classList.add(firstclass);
+                        classList.add(firstClass);
                     }
                     cursor.close();
                     if(classList.size()!=0){
@@ -136,7 +140,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 tv.setTextColor(Color.WHITE);
                                 tv.setGravity(Gravity.CENTER);
                                 String newFirst=parent.getItemAtPosition(position).toString();
-                                if(!newFirst.equals(firstclass)){
+                                if(!newFirst.equals(firstClass)){
+                                    //update the class for signin
+                                    firstClass=newFirst;
                                     SharedPreferences.Editor editor=getSharedPreferences("userInfo",
                                             MODE_PRIVATE).edit();
                                     editor.putString("firstClass",newFirst);
@@ -157,11 +163,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if(cursor.moveToFirst()){
                         do{
                             String name=cursor.getString(cursor.getColumnIndex("className"));
-                            if(!name.equals(firstclass)){
+                            if(!name.equals(firstClass)){
                                 classList.add(name);
                             }
                         }while (cursor.moveToNext());
-                        classList.add(firstclass);
+                        classList.add(firstClass);
                     }
                     cursor.close();
                     if(classList.size()!=0){
@@ -176,7 +182,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 tv.setTextColor(Color.WHITE);
                                 tv.setGravity(Gravity.CENTER);
                                 String newFirst=parent.getItemAtPosition(position).toString();
-                                if(!newFirst.equals(firstclass)){
+                                if(!newFirst.equals(firstClass)){
+                                    firstClass=newFirst;
                                     SharedPreferences.Editor editor=getSharedPreferences("userInfo",
                                             MODE_PRIVATE).edit();
                                     editor.putString("firstClass",newFirst);
@@ -296,7 +303,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public Integer doInBackground(Void ... params){
             try{
-
+                if(firstClass==null)
+                    return -20;
                 if(location==null){
                     location=LocationUtils.getLocation(MainActivity.this);
                 }
@@ -313,13 +321,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     return -1;
                 inputStream=new DataInputStream(socket.getInputStream());
                 outputStream=new DataOutputStream(socket.getOutputStream());
-                String className=null;
-                SharedPreferences sp=getSharedPreferences("userInfo",MODE_PRIVATE);
-                className=sp.getString("firstClass","");
                 int result;
                 if(isStudent){
                     outputStream.writeUTF("signin");
-                    outputStream.writeUTF(className);
+                    outputStream.writeUTF(firstClass);
                     outputStream.writeDouble(latitude);
                     outputStream.writeDouble(longitude);
                     outputStream.writeInt(stuNum);
@@ -330,12 +335,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 "userInfo.db",null,2);
                         SQLiteDatabase db=dbUtils.getWritableDatabase();
                         db.execSQL("insert into StudentSignin(className,signinTime) values(?,?)",
-                                new String[]{className,time});
+                                new String[]{firstClass,time});
                     }
                 }
                 else{
                     outputStream.writeUTF("startSignin");
-                    outputStream.writeUTF(className);
+                    outputStream.writeUTF(firstClass);
                     outputStream.writeDouble(latitude);
                     outputStream.writeDouble(longitude);
                     result=inputStream.readInt();
@@ -365,7 +370,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     break;
                 case -1:
-                    Toast.makeText(MainActivity.this,"无法连接网络！",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this,"无法连接服务器！",Toast.LENGTH_SHORT).show();
                     break;
                 case -2:
                     if(isStudent){
@@ -389,9 +394,118 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(MainActivity.this,"无法获取位置，请稍后重试！",
                             Toast.LENGTH_SHORT).show();
                     break;
+                case -20:
+                    Toast.makeText(MainActivity.this,"你还未添加任何课堂！",
+                            Toast.LENGTH_SHORT).show();
+                    break;
             }
         }
 
+    }
+
+    class AutoSigninTask extends AsyncTask<Void,Void,Integer>{
+
+        ProgressDialogUtils pd=new ProgressDialogUtils();
+
+        @Override
+        public void onPreExecute(){
+            pd.showProgressDialog(MainActivity.this,"签到","签到中");
+        }
+
+        @Override
+        public Integer doInBackground(Void ... params){
+            if(isLogined && isStudent && autoSignin){
+                try{
+                    if(firstClass==null)
+                        return -20;
+                    int count=0;
+                    while(location==null){
+                        location=LocationUtils.getLocation(MainActivity.this);
+                        Thread.sleep(1000);
+                        count++;
+                        if(count==10)
+                            return -10;
+                    }
+                    latitude=location.getLatitude();
+                    longitude=location.getLongitude();
+
+                    Socket socket=new Socket(SocketUtils.ip,6000);
+                    count=0;
+                    while (socket==null){
+                        socket=new Socket(SocketUtils.ip,6000);
+                        Thread.sleep(1000);
+                        count++;
+                        if(count==10)
+                            return -11;
+                    }
+                    socket.setSoTimeout(5*1000);
+                    inputStream=new DataInputStream(socket.getInputStream());
+                    outputStream=new DataOutputStream(socket.getOutputStream());
+                    int result;
+                    outputStream.writeUTF("signin");
+                    outputStream.writeUTF(firstClass);
+                    outputStream.writeDouble(latitude);
+                    outputStream.writeDouble(longitude);
+                    outputStream.writeInt(stuNum);
+                    result=inputStream.readInt();
+                    count=0;
+                    while(result!=1){
+                        Thread.sleep(1000);
+                        outputStream.writeUTF("signin");
+                        outputStream.writeUTF(firstClass);
+                        outputStream.writeDouble(latitude);
+                        outputStream.writeDouble(longitude);
+                        outputStream.writeInt(stuNum);
+                        result=inputStream.readInt();
+                        count++;
+                        if(count==10)
+                            return -12;
+                    }
+                    String time=inputStream.readUTF();
+                    DBUtils dbUtils=new DBUtils(MainActivity.this,
+                            "userInfo.db",null,2);
+                    SQLiteDatabase db=dbUtils.getWritableDatabase();
+                    db.execSQL("insert into StudentSignin(className,signinTime) values(?,?)",
+                            new String[]{firstClass,time});
+                    socket.close();
+                    inputStream.close();
+                    outputStream.close();
+                    return result;
+                }catch (UnknownHostException e){
+                    e.printStackTrace();
+                }catch (InterruptedException e){
+                    e.printStackTrace();
+                } catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
+            return 0;
+        }
+
+        @Override
+        public void onPostExecute(Integer result){
+            pd.finishProgressDialog();
+            switch (result){
+                case 1:
+                    Toast.makeText(MainActivity.this,"签到成功！",
+                            Toast.LENGTH_SHORT).show();
+                    break;
+                case -10:
+                    Toast.makeText(MainActivity.this,"无法获取位置，请稍后手动签到！",
+                            Toast.LENGTH_SHORT).show();
+                    break;
+                case -11:
+                    Toast.makeText(MainActivity.this,"无法连接服务器，请稍后手动签到！",
+                            Toast.LENGTH_SHORT).show();
+                    break;
+                case -12:
+                    Toast.makeText(MainActivity.this,"签到失败，请稍后手动签到！",
+                            Toast.LENGTH_SHORT).show();
+                    break;
+                case -20:
+                    break;
+            }
+        }
     }
 
     @Override
