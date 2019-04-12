@@ -109,84 +109,88 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             final String firstclass=sp.getString("firstClass","");
             if(!firstclass.equals("")){
                 classList.add(firstclass);
-            }
-            DBUtils dbUtils=new DBUtils(MainActivity.this,"userInfo.db",null,2);
-            SQLiteDatabase db=dbUtils.getWritableDatabase();
-            if(isStudent){
-                Cursor cursor=db.query("StudentClass",
-                        null,null,null,null,null,null);
-                if(cursor.moveToFirst()){
-                    do{
-                        String name=cursor.getString(cursor.getColumnIndex("className"));
-                        classList.add(name);
-                    }while (cursor.moveToNext());
-                }
-                cursor.close();
-                if(classList.size()!=0){
-                    MajorAdapter adapter=new MajorAdapter(this,
-                            R.layout.support_simple_spinner_dropdown_item,classList);
-                    spinner.setAdapter(adapter);
-                    spinner.setSelection(classList.size()-1,true);
-                    spinner.setVisibility(View.VISIBLE);
-                    spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            TextView tv = (TextView) view;
-                            tv.setTextColor(Color.WHITE);
-                            tv.setGravity(Gravity.CENTER);
-                            String newFirst=parent.getItemAtPosition(position).toString();
-                            if(!newFirst.equals(firstclass)){
-                                SharedPreferences.Editor editor=getSharedPreferences("userInfo",
-                                        MODE_PRIVATE).edit();
-                                editor.putString("firstClass",newFirst);
-                                editor.commit();
+                DBUtils dbUtils=new DBUtils(MainActivity.this,"userInfo.db",null,2);
+                SQLiteDatabase db=dbUtils.getWritableDatabase();
+                if(isStudent){
+                    Cursor cursor=db.query("StudentClass",
+                            null,null,null,null,null,null);
+                    if(cursor.moveToFirst()){
+                        do{
+                            String name=cursor.getString(cursor.getColumnIndex("className"));
+                            if(!name.equals(firstclass)){
+                                classList.add(name);
                             }
-                        }
-
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {
-
-                        }
-                    });
-                }
-            }
-            else{
-                Cursor cursor=db.query("TeacherClass",
-                        null,null,null,null,null,null);
-                if(cursor.moveToFirst()){
-                    do{
-                        String name=cursor.getString(cursor.getColumnIndex("className"));
-                        classList.add(name);
-                    }while (cursor.moveToNext());
-                }
-                cursor.close();
-                if(classList.size()!=0){
-                    MajorAdapter adapter=new MajorAdapter(this,
-                            R.layout.support_simple_spinner_dropdown_item,classList);
-                    spinner.setAdapter(adapter);
-                    //spinner.setSelection(classList.size()-1,true);
-                    spinner.setVisibility(View.VISIBLE);
-                    spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            TextView tv = (TextView) view;
-                            tv.setTextColor(Color.WHITE);
-                            tv.setGravity(Gravity.CENTER);
-                            String newFirst=parent.getItemAtPosition(position).toString();
-                            if(!newFirst.equals(firstclass)){
-                                SharedPreferences.Editor editor=getSharedPreferences("userInfo",
-                                        MODE_PRIVATE).edit();
-                                editor.putString("firstClass",newFirst);
-                                editor.commit();
+                        }while (cursor.moveToNext());
+                        classList.add(firstclass);
+                    }
+                    cursor.close();
+                    if(classList.size()!=0){
+                        MajorAdapter adapter=new MajorAdapter(this,
+                                R.layout.support_simple_spinner_dropdown_item,classList);
+                        spinner.setAdapter(adapter);
+                        spinner.setVisibility(View.VISIBLE);
+                        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                TextView tv = (TextView) view;
+                                tv.setTextColor(Color.WHITE);
+                                tv.setGravity(Gravity.CENTER);
+                                String newFirst=parent.getItemAtPosition(position).toString();
+                                if(!newFirst.equals(firstclass)){
+                                    SharedPreferences.Editor editor=getSharedPreferences("userInfo",
+                                            MODE_PRIVATE).edit();
+                                    editor.putString("firstClass",newFirst);
+                                    editor.commit();
+                                }
                             }
-                        }
 
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
 
-                        }
-                    });
+                            }
+                        });
+                    }
                 }
+                else{
+                    Cursor cursor=db.query("TeacherClass",
+                            null,null,null,null,null,null);
+                    if(cursor.moveToFirst()){
+                        do{
+                            String name=cursor.getString(cursor.getColumnIndex("className"));
+                            if(!name.equals(firstclass)){
+                                classList.add(name);
+                            }
+                        }while (cursor.moveToNext());
+                        classList.add(firstclass);
+                    }
+                    cursor.close();
+                    if(classList.size()!=0){
+                        MajorAdapter adapter=new MajorAdapter(this,
+                                R.layout.support_simple_spinner_dropdown_item,classList);
+                        spinner.setAdapter(adapter);
+                        spinner.setVisibility(View.VISIBLE);
+                        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                TextView tv = (TextView) view;
+                                tv.setTextColor(Color.WHITE);
+                                tv.setGravity(Gravity.CENTER);
+                                String newFirst=parent.getItemAtPosition(position).toString();
+                                if(!newFirst.equals(firstclass)){
+                                    SharedPreferences.Editor editor=getSharedPreferences("userInfo",
+                                            MODE_PRIVATE).edit();
+                                    editor.putString("firstClass",newFirst);
+                                    editor.commit();
+                                }
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
+            }
             }
         }
     }

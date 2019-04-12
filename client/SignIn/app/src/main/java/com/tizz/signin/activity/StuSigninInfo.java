@@ -115,6 +115,15 @@ public class StuSigninInfo extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    private void clearListView(){
+        if(signinList.size()!=0){
+            signinList.clear();
+        }
+        ArrayAdapter<String> adapter=new ArrayAdapter<>(
+                StuSigninInfo.this,android.R.layout.simple_list_item_1,signinList);
+        info.setAdapter(adapter);
+    }
+
     @Override
     public void onClick(View view){
         switch (view.getId()){
@@ -122,9 +131,8 @@ public class StuSigninInfo extends AppCompatActivity implements View.OnClickList
                 StuSigninInfo.this.finish();
                 break;
             case R.id.btn_check:
-                if(signinList.size()!=0){
-                    signinList.clear();
-                }
+                //update the listview info
+                clearListView();
                 initListView();
                 break;
         }

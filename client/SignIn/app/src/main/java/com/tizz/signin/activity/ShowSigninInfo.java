@@ -215,6 +215,17 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    private void clearListView(){
+        //clear old data
+        if(infoShow.size()!=0){
+            infoShow.clear();
+        }
+        ArrayAdapter<String> adapter=new ArrayAdapter<>(
+                ShowSigninInfo.this,android.R.layout.simple_list_item_1,infoShow
+        );
+        checkList.setAdapter(adapter);
+    }
+
     @Override
     public void onClick(View view){
         switch (view.getId()){
@@ -222,15 +233,12 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                 ShowSigninInfo.this.finish();
                 break;
             case R.id.btn_check:
+                clearListView();
                 //check if the input info is complete
                 if(!spinnerHasInfo()){
                     Toast.makeText(ShowSigninInfo.this,"请先完善查询条件!",
                             Toast.LENGTH_SHORT).show();
                     break;
-                }
-                //clear old data
-                if(infoShow.size()!=0){
-                    infoShow.clear();
                 }
                 new ShowSigninInfoTask().execute();
                 break;
