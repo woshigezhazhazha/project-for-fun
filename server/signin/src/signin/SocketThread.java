@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Logger;
@@ -117,11 +118,17 @@ public class SocketThread implements Runnable {
 				}
 				else{
 					//create a signin info table for this class 
-					String classTable="create table "+className+"课堂签到信息(stuNum int,signinTime datetime)";
+					String classTable="create table "+className+"课堂签到信息("
+							+ "stuNum int,"
+							+ "signinTime datetime2(0))";
 					int createClassTable=DBUtils.createTable(connection,classTable);
 					
 					//create a talbe to show students who add this class
-					String addClassStus="create table "+className+"课堂学生信息(stuName nvarchar(10),stuId nvarchar(20),stuMajor nvarchar(40))";
+					String addClassStus="create table "+className+"课堂学生信息("
+							+ "stuName nvarchar(10),"
+							+ "stuId nvarchar(20),"
+							+ "stuMajor nvarchar(40),"
+							+ "lastSigninTime datetime2(0))";
 					int createAddClassStus=DBUtils.createTable(connection, addClassStus);
 					
 					if(createClassTable==-1 ||createAddClassStus==-1){
@@ -153,7 +160,7 @@ public class SocketThread implements Runnable {
 				String stuid=inputStream.readUTF();
 				String major=inputStream.readUTF();
 				
-				String insertSql="insert into "+className+"课堂学生信息 values('"+name+"','"+stuid+"','"+major+"')";
+				String insertSql="insert into "+className+"课堂学生信息 values('"+name+"','"+stuid+"','"+major+"',null)";
 				int result=DBUtils.insert(connection, insertSql);
 				if(result>0)
 					outputStream.writeInt(1);
@@ -168,7 +175,7 @@ public class SocketThread implements Runnable {
 				String opensql="update classInfo set isOpen=1 where name='"+name+"'";
 				String closesql="update classInfo set isOpen=0 where name='"+name+"'";
 				String getTimeLimit="select * from classInfo where name='"+name+"'";
-				int timeLimit=100;
+				int timeLimit=0;
 				resultSet=DBUtils.select(connection, getTimeLimit);
 				if(resultSet.next()){
 					timeLimit=resultSet.getInt(3);
@@ -201,10 +208,11 @@ public class SocketThread implements Runnable {
 			
 			else if(cmdkind.equals("signin")){
 				//get system time first
-				Date time=new Date(System.currentTimeMillis());	
+				Timestamp time=new Timestamp(System.currentTimeMillis());	
 				int classOpen=0;
 				double classLatitude=0;
 				double classLongitude=0;
+				int timeLimit=0;
 				String className=inputStream.readUTF();
 				String checkClass="select * from classInfo where name='"+className+"'";
 				resultSet=DBUtils.select(connection, checkClass);
@@ -212,31 +220,54 @@ public class SocketThread implements Runnable {
 					classOpen=resultSet.getInt("isOpen");
 					classLatitude=resultSet.getDouble("latitude");
 					classLongitude=resultSet.getDouble("longitude");
+					timeLimit=resultSet.getInt("timeLimit");
 				}
 				if(classOpen==1){
 					//check the location
 					double userLatitude=inputStream.readDouble();
 					double userLongitude=inputStream.readDouble();
-					/*
+				
 					if(!DistanceUtils.isBetweenDistance(classLongitude, classLatitude, userLongitude, userLatitude)){
 						outputStream.writeInt(-3);
 						return;
 					}
-					*/
+			
+					
 					
 					int stuNum=inputStream.readInt();
+					String stuId=inputStream.readUTF();
 					
-					String insertSignin="insert into "+className+"课堂签到信息 values("+stuNum+","+time+")";
+					//check for signin times
+					String signinTimes="select * from "+className+"课堂学生信息 where stuId='"+stuId+"'";
+					resultSet=DBUtils.select(connection, signinTimes);
+					if(resultSet.next()){
+						Timestamp lasttime=resultSet.getTimestamp("lastSigninTime");
+						if(lasttime!=null){
+							boolean isInTimeLimit=TimeUtils.isInTimeLimit(time, lasttime, timeLimit);
+							System.out.println(isInTimeLimit);
+							if(!isInTimeLimit){
+								outputStream.writeInt(-50);
+								return;
+							}
+													
+					    }
+					
+					String insertSignin="insert into "+className+"课堂签到信息 values("+stuNum+",'"+time+"')";
+					String updateSigninTime="update "+className+"课堂学生信息 set lastSigninTime='"+time+"' where stuId='"+stuId+"'";
 					int result=DBUtils.insert(connection, insertSignin);
-					if(result>0){
+					int result2=DBUtils.update(connection, updateSigninTime);
+					if(result>0 && result2>0){
 						outputStream.writeInt(1);
-						SimpleDateFormat df=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+						SimpleDateFormat df=new SimpleDateFormat("HH:mm:ss");
+						SimpleDateFormat df2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 						//return signin time to app
 						outputStream.writeUTF(df.format(time));
+						outputStream.writeUTF(df2.format(time));
 					}
 					else{
 						outputStream.writeInt(-4);
 					}
+				}
 				}
 				else{
 					//the class is not open
@@ -253,7 +284,7 @@ public class SocketThread implements Runnable {
 					String name=resultSet.getString("stuName");
 					String stuid=resultSet.getString("stuId");
 					String major=resultSet.getString("stuMajor");
-					String stuInfo=name+"("+stuid+")"+"("+major+")";
+					String stuInfo=name+"("+stuid+")\n("+major+")";
 					outputStream.writeUTF(stuInfo);
 				}
 				outputStream.writeUTF("@@@the stu info is at an end!!!!");	
@@ -264,15 +295,15 @@ public class SocketThread implements Runnable {
 				String className=inputStream.readUTF();
 				String getData="select studentReg.name,studentReg.idnum,studentReg.major,count("+className+"课堂签到信息.stuNum) as counts "
 						+ "from studentReg,"+className+"课堂签到信息 "
-								+ "where studentReg.idnum="+className+"课堂签到信息.stuNum "
+								+ "where studentReg.num="+className+"课堂签到信息.stuNum "
 										+ "group by studentReg.idnum,studentReg.name,studentReg.major";
 				resultSet=DBUtils.select(connection, getData);
 				while(resultSet.next()){
-					String name=resultSet.getString("studentReg.name");
-					String stuid=resultSet.getString("studentReg.stuId");
-					String major=resultSet.getString("studentReg.major");
+					String name=resultSet.getString("name");
+					String stuid=resultSet.getString("idnum");
+					String major=resultSet.getString("major");
 					int count=resultSet.getInt("counts");
-					String dataReturned=name+"("+stuid+")("+major+")签到"+count+"次";
+					String dataReturned=name+"("+stuid+")("+major+")\n签到"+count+"次";
 					outputStream.writeUTF(dataReturned);
 				}
 				outputStream.writeUTF("###the sigin info for all students is over!!!");
@@ -291,7 +322,7 @@ public class SocketThread implements Runnable {
             			String stuid=resultSet.getString("idnum");
             			Date date=resultSet.getDate("signinTime");
             			String time=df.format(date);
-            			String dataReturned=name+"("+stuid+") 签到:"+time;
+            			String dataReturned=name+"("+stuid+")\n签到:"+time;
             			outputStream.writeUTF(dataReturned);
             	}
             	outputStream.writeUTF("###the sigin info for all info is over!!!");
@@ -312,7 +343,7 @@ public class SocketThread implements Runnable {
             			String stuid=resultSet.getString("idnum");
             			Date date=resultSet.getDate("signinTime");
             			String time=df.format(date);
-            			String dataReturned=name+"("+stuid+") 签到:"+time;
+            			String dataReturned=name+"("+stuid+")\n签到:"+time;
             			outputStream.writeUTF(dataReturned);
             	}
             	outputStream.writeUTF("###the sigin info for this major is over!!!");
@@ -349,7 +380,7 @@ public class SocketThread implements Runnable {
             			String stuid=resultSet.getString("idnum");
             			String stumajor=resultSet.getString("major");
             			
-            			String dataReturned=name+"("+stuid+")("+stumajor+")";
+            			String dataReturned=name+"("+stuid+")\n("+stumajor+")";
             			outputStream.writeUTF(dataReturned);
             		}
             	}

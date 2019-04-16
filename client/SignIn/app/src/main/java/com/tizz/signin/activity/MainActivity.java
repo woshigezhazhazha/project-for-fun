@@ -58,12 +58,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DataOutputStream outputStream;
     private DataInputStream inputStream;
     private int stuNum;
+    private String stuId;
 
     private static final int UPDATE_TIME=1;
 
     private Spinner spinner;
     private ArrayList<String> classList=new ArrayList<>();
     private String firstClass;
+    private String signintime=null;
 
 
     @Override
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         isLogined=sharedPreferences.getBoolean("isLogined",false);
         isStudent=sharedPreferences.getBoolean("isStudent",true);
         stuNum=sharedPreferences.getInt("userid",0);
+        stuId=sharedPreferences.getString("stuid","");
         autoSignin=sharedPreferences.getBoolean("autoSignin",false);
         if(!isLogined){
             final AlertDialog alertDialog=new AlertDialog.Builder(this)
@@ -247,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view){
         switch (view.getId()){
             case R.id.btn_signIn:
-
+                signinTime.setVisibility(View.INVISIBLE);
                 new SigninTask().execute();
                 break;
             case R.id.rl_settings:
@@ -328,8 +331,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     outputStream.writeDouble(latitude);
                     outputStream.writeDouble(longitude);
                     outputStream.writeInt(stuNum);
+                    outputStream.writeUTF(stuId);
                     result=inputStream.readInt();
                     if(result==1){
+                        signintime=inputStream.readUTF();
                         String time=inputStream.readUTF();
                         DBUtils dbUtils=new DBUtils(MainActivity.this,
                                 "userInfo.db",null,2);
@@ -363,9 +368,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             switch(result){
                 case 1:
                     if(isStudent){
+                        signinTime.setText("签到时间:"+signintime);
+                        signinTime.setVisibility(View.VISIBLE);
                         Toast.makeText(MainActivity.this,"签到成功！",Toast.LENGTH_SHORT).show();
                     }
                     else{
+                        String time=TimeUtils.getSysTime();
+                        signinTime.setText("打开签到时间:"+time);
+                        signinTime.setVisibility(View.VISIBLE);
                         Toast.makeText(MainActivity.this,"打开签到成功！",Toast.LENGTH_SHORT).show();
                     }
                     break;
@@ -396,6 +406,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 case -20:
                     Toast.makeText(MainActivity.this,"你还未添加任何课堂！",
+                            Toast.LENGTH_SHORT).show();
+                    break;
+                case -50:
+                    Toast.makeText(MainActivity.this,"你已签到，勿重复操作！",
                             Toast.LENGTH_SHORT).show();
                     break;
             }
@@ -447,6 +461,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     outputStream.writeDouble(latitude);
                     outputStream.writeDouble(longitude);
                     outputStream.writeInt(stuNum);
+                    outputStream.writeUTF(stuId);
                     result=inputStream.readInt();
                     count=0;
                     while(result!=1){
@@ -456,11 +471,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         outputStream.writeDouble(latitude);
                         outputStream.writeDouble(longitude);
                         outputStream.writeInt(stuNum);
+                        outputStream.writeUTF(stuId);
                         result=inputStream.readInt();
                         count++;
                         if(count==10)
                             return -12;
                     }
+                    signintime=inputStream.readUTF();
                     String time=inputStream.readUTF();
                     DBUtils dbUtils=new DBUtils(MainActivity.this,
                             "userInfo.db",null,2);
@@ -487,6 +504,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             pd.finishProgressDialog();
             switch (result){
                 case 1:
+                    signinTime.setText("签到时间:"+signintime);
+                    signinTime.setVisibility(View.VISIBLE);
                     Toast.makeText(MainActivity.this,"签到成功！",
                             Toast.LENGTH_SHORT).show();
                     break;
@@ -503,6 +522,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             Toast.LENGTH_SHORT).show();
                     break;
                 case -20:
+                    break;
+                case -50:
+                    Toast.makeText(MainActivity.this,"你已签到，勿重复操作！",
+                            Toast.LENGTH_SHORT).show();
                     break;
             }
         }

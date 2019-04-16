@@ -8,7 +8,7 @@ import java.sql.SQLException;
 
 public class DBUtils {
 	
-	private static final String URL="jdbc:sqlserver://localhost:1433;DatabaseName=salaryCharge";
+	private static final String URL="jdbc:sqlserver://localhost:1433;DatabaseName=signin";
 	private static final String USER="sa";
 	private static final String PASSWORD="123456";
 	

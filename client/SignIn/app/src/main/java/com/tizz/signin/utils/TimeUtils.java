@@ -1,7 +1,7 @@
 package com.tizz.signin.utils;
 
-import android.icu.text.SimpleDateFormat;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class TimeUtils {

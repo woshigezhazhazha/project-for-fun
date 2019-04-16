@@ -79,9 +79,8 @@ public class SetClass extends AppCompatActivity implements View.OnClickListener 
     private void initAdapter(){
         timeLimits.add("5分钟");
         timeLimits.add("10分钟");
+        timeLimits.add("15分钟");
         timeLimits.add("20分钟");
-        timeLimits.add("30分钟");
-        timeLimits.add("一直打开");
         timeLimits.add("签到时长");
 
         MajorAdapter classTimeAdapter=new MajorAdapter(this,
@@ -124,11 +123,9 @@ public class SetClass extends AppCompatActivity implements View.OnClickListener 
             return 10;
         else if(timeLimit.equals("20分钟"))
             return 20;
-        else if(timeLimit.equals("30分钟"))
-            return 30;
-        else if(timeLimit.equals("一直打开"))
-            return 100;
-        return 100;
+        else if(timeLimit.equals("15分钟"))
+            return 15;
+        return 20;
     }
 
     class SetClassTask extends AsyncTask<Void,Void,Integer>{

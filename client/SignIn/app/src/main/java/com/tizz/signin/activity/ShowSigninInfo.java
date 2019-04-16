@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.tizz.signin.MajorAdapter;
 import com.tizz.signin.R;
+import com.tizz.signin.utils.ArraylistUtils;
 import com.tizz.signin.utils.DBUtils;
 import com.tizz.signin.utils.ProgressDialogUtils;
 import com.tizz.signin.utils.SocketUtils;
@@ -93,23 +94,10 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                 stringKind=parent.getItemAtPosition(position).toString();
 
                 if(stringKind.equals("学院查询")){
+
                     Spinner spinner=new Spinner(ShowSigninInfo.this);
                     ArrayList<String> majors=new ArrayList<>();
-                    majors.add("哲学");
-                    majors.add("经济学");
-                    majors.add("法学");
-                    majors.add("教育学");
-                    majors.add("文学");
-                    majors.add("历史学");
-                    majors.add("理学");
-                    majors.add("工学");
-                    majors.add("农学");
-                    majors.add("医学");
-                    majors.add("军事学");
-                    majors.add("管理学");
-                    majors.add("艺术学");
-                    majors.add("院系专业");
-
+                    majors= ArraylistUtils.getArrayList();
                     MajorAdapter majorAdapter=new MajorAdapter(ShowSigninInfo.this,
                             R.layout.support_simple_spinner_dropdown_item,majors);
                     spinner.setAdapter(majorAdapter);
@@ -145,6 +133,8 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                             })
                             .create();
                     alertDialog.show();
+
+
                 }
                 else if(stringKind.equals("时间查询")){
                     final DatePicker datePicker=new DatePicker(ShowSigninInfo.this);

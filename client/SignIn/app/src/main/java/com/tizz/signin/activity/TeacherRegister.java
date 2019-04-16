@@ -136,6 +136,7 @@ public class TeacherRegister extends AppCompatActivity implements View.OnClickLi
                     editor.putInt("userid",userid);
                     editor.putBoolean("isStudent",false);
                     editor.putBoolean("isLogined",false);
+                    editor.putString("firstClass","");
                     editor.commit();
 
                     //create sqlite table

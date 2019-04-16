@@ -33,18 +33,23 @@
 
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:background="@color/colorGray"
-        android:layout_below="@id/ll_check"/>
-
-    <ListView
-        android:id="@+id/lv_checkList"
+    <LinearLayout
+        android:id="@+id/ll_listview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="100dp">
-    </ListView>
+        android:orientation="vertical"
+        android:layout_below="@id/ll_check">
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/colorGray" />
+
+        <ListView
+            android:id="@+id/lv_checkList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </ListView>
+    </LinearLayout>
 
     <Button
         android:id="@+id/btn_check"
