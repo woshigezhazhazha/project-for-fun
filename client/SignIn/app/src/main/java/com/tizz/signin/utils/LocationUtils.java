@@ -29,13 +29,13 @@ public class LocationUtils {
 
         locationManager =(LocationManager)context.getSystemService(Context.LOCATION_SERVICE);
         List<String> providerList=locationManager.getProviders(true);
-        if(providerList.contains(LocationManager.GPS_PROVIDER)){
-            provider=LocationManager.GPS_PROVIDER;
-            //Toast.makeText(MainActivity.this,"GPS to use",Toast.LENGTH_SHORT).show();
-        }
-        else if(providerList.contains(LocationManager.NETWORK_PROVIDER)){
+        if(providerList.contains(LocationManager.NETWORK_PROVIDER)){
             provider=LocationManager.NETWORK_PROVIDER;
             //Toast.makeText(MainActivity.this,"NETWORK to use",Toast.LENGTH_SHORT).show();
+        }
+        else if(providerList.contains(LocationManager.GPS_PROVIDER)){
+            provider=LocationManager.GPS_PROVIDER;
+            //Toast.makeText(MainActivity.this,"GPS to use",Toast.LENGTH_SHORT).show();
         }
         else{
             Toast.makeText(context,"没有可供使用的位置提供器！",Toast.LENGTH_SHORT).show();
