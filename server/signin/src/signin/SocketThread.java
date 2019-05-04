@@ -38,15 +38,19 @@ public class SocketThread implements Runnable {
 				String noAnswer="fail";
 				//get the maxest id num;
 				int num=0;
+				int result=0;
 				String numsql="select max(num) from teacherReg";
-				resultSet=DBUtils.select(connection, numsql);
-				if(resultSet.next()){
-					num=resultSet.getInt(1);
+				synchronized(connection)  {
+					resultSet=DBUtils.select(connection, numsql);
+					if(resultSet.next()){
+						num=resultSet.getInt(1);
+					}
+					//the num increases by one
+					num++;
+					String sql="insert into teacherReg values("+num+",'"+name+"','"+psw+"')";
+					result=DBUtils.insert(connection, sql);
 				}
-				//the num increases by one
-				num++;
-				String sql="insert into teacherReg values("+num+",'"+name+"','"+psw+"')";
-				int result=DBUtils.insert(connection, sql);
+			
 				if(result==-1){
 					outputStream.writeUTF(noAnswer);
 				}
@@ -66,16 +70,21 @@ public class SocketThread implements Runnable {
 				String noAnswer="fail";
 				
 				int num=0;
-				String numsql="select max(num) from studentReg";
-				resultSet=DBUtils.select(connection, numsql);
-				if(resultSet.next()){
-					num=resultSet.getInt(1);
+				int result=0;
+				
+				synchronized (connection) {
+					String numsql="select max(num) from studentReg";
+					resultSet=DBUtils.select(connection, numsql);
+					if(resultSet.next()){
+						num=resultSet.getInt(1);
+					}
+					//the num increases by one
+					num++;
+					//create the insert sql
+					String sql="insert into studentReg values("+num+",'"+name+"','"+psw+"','"+stuID+"','"+stuMajor+"')";
+					result=DBUtils.insert(connection, sql);
 				}
-				//the num increases by one
-				num++;
-				//create the insert sql
-				String sql="insert into studentReg values("+num+",'"+name+"','"+psw+"','"+stuID+"','"+stuMajor+"')";
-				int result=DBUtils.insert(connection, sql);
+				
 				if(result==-1){
 					outputStream.writeUTF(noAnswer);
 				}
@@ -93,26 +102,32 @@ public class SocketThread implements Runnable {
 				
 				//search if the class name has been used
 				String checksql="select * from classInfo where name='"+className+"'";
-				resultSet=	DBUtils.select(connection, checksql);
-				if(resultSet.next()){
-					//the class name already exists
-					outputStream.writeInt(-2);
-					outputStream.close();
-					inputStream.close();
-					socket.close();
-					return;
+				int num=0;
+				int result=0;
+				
+				synchronized (connection) {
+					resultSet=	DBUtils.select(connection, checksql);
+					if(resultSet.next()){
+						//the class name already exists
+						outputStream.writeInt(-2);
+						outputStream.close();
+						inputStream.close();
+						socket.close();
+						return;
+					}
+					
+					String numsql="select max(num) from classInfo";
+					resultSet=DBUtils.select(connection, numsql);
+					if(resultSet.next()){
+						num=resultSet.getInt(1);
+					}
+					num++;
+					//create class sql
+					String sql="insert into classInfo values("+num+",'"+className+"',"+timeLimit+","+teacherNum+",0,0,0)";
+					result=DBUtils.insert(connection, sql);
 				}
 				
-				int num=0;
-				String numsql="select max(num) from classInfo";
-				resultSet=DBUtils.select(connection, numsql);
-				if(resultSet.next()){
-					num=resultSet.getInt(1);
-				}
-				num++;
-				//create class sql
-				String sql="insert into classInfo values("+num+",'"+className+"',"+timeLimit+","+teacherNum+",0,0,0)";
-				int result=DBUtils.insert(connection, sql);
+				
 				if(result==-1){
 					outputStream.writeInt(-1);
 				}

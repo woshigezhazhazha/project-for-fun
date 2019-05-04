@@ -19,7 +19,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.tizz.signin.MajorAdapter;
+import com.tizz.signin.SpAdapter;
 import com.tizz.signin.R;
 import com.tizz.signin.utils.ArraylistUtils;
 import com.tizz.signin.utils.DBUtils;
@@ -98,7 +98,7 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                     Spinner spinner=new Spinner(ShowSigninInfo.this);
                     ArrayList<String> majors=new ArrayList<>();
                     majors= ArraylistUtils.getArrayList();
-                    MajorAdapter majorAdapter=new MajorAdapter(ShowSigninInfo.this,
+                    SpAdapter majorAdapter=new SpAdapter(ShowSigninInfo.this,
                             R.layout.support_simple_spinner_dropdown_item,majors);
                     spinner.setAdapter(majorAdapter);
                     spinner.setSelection(majors.size()-1,true);
@@ -180,7 +180,7 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
         }
         cursor.close();
         classList.add("选择课堂");
-        MajorAdapter classAdapter=new MajorAdapter(this,
+        SpAdapter classAdapter=new SpAdapter(this,
                 R.layout.support_simple_spinner_dropdown_item,classList);
         checkClass.setAdapter(classAdapter);
         checkClass.setSelection(classList.size()-1,true);
@@ -192,7 +192,7 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
         kindList.add("学院查询");
         kindList.add("时间查询");
         kindList.add("查询方式");
-        MajorAdapter kindAdapter=new MajorAdapter(this,
+        SpAdapter kindAdapter=new SpAdapter(this,
                 R.layout.support_simple_spinner_dropdown_item,kindList);
         checkType.setAdapter(kindAdapter);
         checkType.setSelection(kindList.size()-1,true);

@@ -31,7 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.tizz.signin.FingerprintDialogFragment;
-import com.tizz.signin.MajorAdapter;
+import com.tizz.signin.SpAdapter;
 import com.tizz.signin.R;
 import com.tizz.signin.utils.App;
 import com.tizz.signin.utils.DBUtils;
@@ -73,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String stuId;
 
     private static final int UPDATE_TIME=1;
+    private static final int FINGERPRINT_READY=2;
+    private static final int AUTOFINGERPRINT_READY=3;
 
     private Spinner spinner;
     private ArrayList<String> classList=new ArrayList<>();
@@ -81,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final String DEFAULT_KEY_NAME = "default_key";
     private KeyStore keyStore;
-    public static boolean fingerprintSucceded=false;
+    private boolean fingerprintSucceded=false;
 
 
     @Override
@@ -93,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initViews();
         setLogined();
         initSpinner();
-        new AutoSigninTask().execute();
+        autoSignin();
     }
 
     private boolean supportFingerprint(){
@@ -210,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     cursor.close();
                     if(classList.size()!=0){
-                        MajorAdapter adapter=new MajorAdapter(this,
+                        SpAdapter adapter=new SpAdapter(this,
                                 R.layout.support_simple_spinner_dropdown_item,classList);
                         spinner.setAdapter(adapter);
                         spinner.setVisibility(View.VISIBLE);
@@ -253,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     cursor.close();
                     if(classList.size()!=0){
-                        MajorAdapter adapter=new MajorAdapter(this,
+                        SpAdapter adapter=new SpAdapter(this,
                                 R.layout.support_simple_spinner_dropdown_item,classList);
                         spinner.setAdapter(adapter);
                         spinner.setVisibility(View.VISIBLE);
@@ -291,6 +293,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case UPDATE_TIME:
                     currentTime.setText("当前时间:"+ TimeUtils.getSysTime());
                     break;
+                case FINGERPRINT_READY:
+                    new SigninTask().execute();
+                    break;
+                case AUTOFINGERPRINT_READY:
+                    new AutoSigninTask().execute();
+                    break;
                 default:
                     break;
             }
@@ -325,6 +333,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         location= LocationUtils.getLocation(MainActivity.this);
     }
 
+    private void autoSignin(){
+        if(isLogined && isStudent && autoSignin){
+            if(!signined){
+                signinTime.setVisibility(View.VISIBLE);
+                fingerprintSucceded=FingerprintDialogFragment.succed;
+                if(!fingerprintSucceded){
+                    if(supportFingerprint()){
+                        if(isFingerprintReady()){
+                            initKey();
+                            initCipher();
+
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    fingerprintSucceded=FingerprintDialogFragment.succed;
+                                    while(!fingerprintSucceded){
+                                        try{
+                                            Thread.sleep(200);
+                                            fingerprintSucceded=FingerprintDialogFragment.succed;
+                                        }catch (InterruptedException e){
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    Message message=new Message();
+                                    message.what=AUTOFINGERPRINT_READY;
+                                    handler.sendMessage(message);
+                                }
+                            }).start();
+                        }
+                        else{
+                            return;
+                        }
+                    }
+                    else{
+                        new AutoSigninTask().execute();
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void onClick(View view){
         switch (view.getId()){
@@ -336,14 +385,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 if(!signined){
                     signinTime.setVisibility(View.INVISIBLE);
+                    fingerprintSucceded=FingerprintDialogFragment.succed;
                     if(!fingerprintSucceded){
                         if(supportFingerprint()){
                             if(isFingerprintReady()){
                                 initKey();
                                 initCipher();
-                                if(fingerprintSucceded){
-                                    new SigninTask().execute();
-                                }
+                                //start a thread to get fingerprint result
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        fingerprintSucceded=FingerprintDialogFragment.succed;
+                                        while(!fingerprintSucceded){
+                                            try{
+                                                Thread.sleep(200);
+                                                fingerprintSucceded=FingerprintDialogFragment.succed;
+                                            }catch (InterruptedException e){
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        Message message=new Message();
+                                        message.what=FINGERPRINT_READY;
+                                        handler.sendMessage(message);
+                                    }
+                                }).start();
                                 break;
                             }
                             else{
@@ -395,7 +460,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    class SigninTask extends AsyncTask<Void,Void,Integer> {
+    public class SigninTask extends AsyncTask<Void,Void,Integer> {
 
         ProgressDialogUtils pd=new ProgressDialogUtils();
 
@@ -524,6 +589,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+
     class AutoSigninTask extends AsyncTask<Void,Void,Integer>{
 
         ProgressDialogUtils pd=new ProgressDialogUtils();
@@ -535,34 +601,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public Integer doInBackground(Void ... params){
-            if(isLogined && isStudent && autoSignin){
-                try{
-                    if(firstClass==null)
-                        return -20;
-                    int count=0;
-                    while(location==null){
-                        location=LocationUtils.getLocation(MainActivity.this);
-                        Thread.sleep(1000);
-                        count++;
-                        if(count==10)
-                            return -10;
-                    }
-                    latitude=location.getLatitude();
-                    longitude=location.getLongitude();
+            try{
+                if(firstClass==null)
+                    return -20;
+                int count=0;
+                while(location==null){
+                    location=LocationUtils.getLocation(MainActivity.this);
+                    Thread.sleep(1000);
+                    count++;
+                    if(count==10)
+                        return -10;
+                }
+                latitude=location.getLatitude();
+                longitude=location.getLongitude();
 
-                    Socket socket=new Socket(SocketUtils.ip,6000);
-                    count=0;
-                    while (socket==null){
-                        socket=new Socket(SocketUtils.ip,6000);
-                        Thread.sleep(1000);
-                        count++;
-                        if(count==10)
-                            return -11;
-                    }
-                    socket.setSoTimeout(5*1000);
-                    inputStream=new DataInputStream(socket.getInputStream());
-                    outputStream=new DataOutputStream(socket.getOutputStream());
-                    int result;
+                Socket socket=new Socket(SocketUtils.ip,6000);
+                count=0;
+                while (socket==null){
+                    socket=new Socket(SocketUtils.ip,6000);
+                    Thread.sleep(1000);
+                    count++;
+                    if(count==10)
+                        return -11;
+                }
+                socket.setSoTimeout(5*1000);
+                inputStream=new DataInputStream(socket.getInputStream());
+                outputStream=new DataOutputStream(socket.getOutputStream());
+                int result;
+                outputStream.writeUTF("signin");
+                outputStream.writeUTF(firstClass);
+                outputStream.writeDouble(latitude);
+                outputStream.writeDouble(longitude);
+                outputStream.writeInt(stuNum);
+                outputStream.writeUTF(stuId);
+                result=inputStream.readInt();
+                count=0;
+                while(result!=1){
+                    Thread.sleep(1000);
                     outputStream.writeUTF("signin");
                     outputStream.writeUTF(firstClass);
                     outputStream.writeDouble(latitude);
@@ -570,38 +645,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     outputStream.writeInt(stuNum);
                     outputStream.writeUTF(stuId);
                     result=inputStream.readInt();
-                    count=0;
-                    while(result!=1){
-                        Thread.sleep(1000);
-                        outputStream.writeUTF("signin");
-                        outputStream.writeUTF(firstClass);
-                        outputStream.writeDouble(latitude);
-                        outputStream.writeDouble(longitude);
-                        outputStream.writeInt(stuNum);
-                        outputStream.writeUTF(stuId);
-                        result=inputStream.readInt();
-                        count++;
-                        if(count==10)
-                            return -12;
-                    }
-                    signintime=inputStream.readUTF();
-                    String time=inputStream.readUTF();
-                    DBUtils dbUtils=new DBUtils(MainActivity.this,
-                            "userInfo.db",null,2);
-                    SQLiteDatabase db=dbUtils.getWritableDatabase();
-                    db.execSQL("insert into StudentSignin(className,signinTime) values(?,?)",
-                            new String[]{firstClass,time});
-                    socket.close();
-                    inputStream.close();
-                    outputStream.close();
-                    return result;
-                }catch (UnknownHostException e){
-                    e.printStackTrace();
-                }catch (InterruptedException e){
-                    e.printStackTrace();
-                } catch (IOException e){
-                    e.printStackTrace();
+                    count++;
+                    if(count==10)
+                        return -12;
                 }
+                signintime=inputStream.readUTF();
+                String time=inputStream.readUTF();
+                DBUtils dbUtils=new DBUtils(MainActivity.this,
+                        "userInfo.db",null,2);
+                SQLiteDatabase db=dbUtils.getWritableDatabase();
+                db.execSQL("insert into StudentSignin(className,signinTime) values(?,?)",
+                        new String[]{firstClass,time});
+                socket.close();
+                inputStream.close();
+                outputStream.close();
+                return result;
+            }catch (UnknownHostException e){
+                e.printStackTrace();
+            }catch (InterruptedException e){
+                e.printStackTrace();
+            } catch (IOException e){
+                e.printStackTrace();
             }
             return 0;
         }

@@ -29,6 +29,8 @@ public class main {
 			+ "isOpen int,"
 			+ "latitude decimal(38,20),"
 			+ "longitude decimal(38,20))";
+	
+	private static final String setIsOpen="upate classInfo set isOpen=0";
 
 	public static void main(String args[]){
 		//连接数据库
@@ -57,6 +59,11 @@ public class main {
 			if(createclass!=-1){
 				System.out.println("class info table is created");
 			}
+		}
+		
+		int setIsOpenResult=DBUtils.update(connection, setIsOpen);
+		if(setIsOpenResult<0){
+			System.out.println("set isOpen failed");
 		}
 		
 		//start the server

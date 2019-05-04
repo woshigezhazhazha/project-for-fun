@@ -15,7 +15,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.tizz.signin.MajorAdapter;
+import com.tizz.signin.SpAdapter;
 import com.tizz.signin.R;
 import com.tizz.signin.utils.DBUtils;
 
@@ -67,7 +67,7 @@ public class StuSigninInfo extends AppCompatActivity implements View.OnClickList
 
         signinClass.add("选择课堂");
 
-        MajorAdapter adapter=new MajorAdapter(this,
+        SpAdapter adapter=new SpAdapter(this,
                 R.layout.support_simple_spinner_dropdown_item,signinClass);
         classChoose.setAdapter(adapter);
         classChoose.setSelection(signinClass.size()-1,true);

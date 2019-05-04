@@ -6,9 +6,9 @@ import android.widget.ArrayAdapter;
 
 import java.util.List;
 
-public class MajorAdapter<T> extends ArrayAdapter {
+public class SpAdapter<T> extends ArrayAdapter {
 
-    public MajorAdapter(Context context, int resource,@NonNull List<T> objects){
+    public SpAdapter(Context context, int resource, @NonNull List<T> objects){
         super(context,resource,objects);
     }
     @Override

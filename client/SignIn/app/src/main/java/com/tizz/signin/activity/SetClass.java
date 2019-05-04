@@ -18,7 +18,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.tizz.signin.MajorAdapter;
+import com.tizz.signin.SpAdapter;
 import com.tizz.signin.R;
 import com.tizz.signin.utils.DBUtils;
 import com.tizz.signin.utils.ProgressDialogUtils;
@@ -83,7 +83,7 @@ public class SetClass extends AppCompatActivity implements View.OnClickListener 
         timeLimits.add("20分钟");
         timeLimits.add("签到时长");
 
-        MajorAdapter classTimeAdapter=new MajorAdapter(this,
+        SpAdapter classTimeAdapter=new SpAdapter(this,
                 R.layout.support_simple_spinner_dropdown_item,timeLimits);
         classTime.setAdapter(classTimeAdapter);
         classTime.setSelection(timeLimits.size()-1,true);

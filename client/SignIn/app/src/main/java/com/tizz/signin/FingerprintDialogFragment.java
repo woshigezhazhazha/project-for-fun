@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.tizz.signin.activity.MainActivity;
 
@@ -24,6 +23,7 @@ public class FingerprintDialogFragment extends DialogFragment {
     private TextView cancel;
     private boolean isSelfCancelled;
     private MainActivity mainActivity;
+    public static boolean succed=false;
 
 
     @Override
@@ -92,9 +92,7 @@ public class FingerprintDialogFragment extends DialogFragment {
                     @Override
                     public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result){
                         super.onAuthenticationSucceeded(result);
-                        mainActivity.fingerprintSucceded=true;
-                        Toast.makeText(mainActivity,"指纹认证成功！",
-                                Toast.LENGTH_SHORT).show();
+                        succed=true;
                         dismiss();
                     }
 

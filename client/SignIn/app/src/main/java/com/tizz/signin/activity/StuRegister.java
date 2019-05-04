@@ -18,7 +18,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.tizz.signin.MajorAdapter;
+import com.tizz.signin.SpAdapter;
 import com.tizz.signin.R;
 import com.tizz.signin.utils.ArraylistUtils;
 import com.tizz.signin.utils.DBUtils;
@@ -206,7 +206,7 @@ public class StuRegister extends AppCompatActivity implements View.OnClickListen
 
         majors= ArraylistUtils.getArrayList();
 
-        MajorAdapter majorAdapter=new MajorAdapter(this,
+        SpAdapter majorAdapter=new SpAdapter(this,
                 R.layout.support_simple_spinner_dropdown_item,majors);
         spMajor.setAdapter(majorAdapter);
         spMajor.setSelection(majors.size()-1,true);
