@@ -1,8 +1,15 @@
 package signin;
 
-import java.sql.Date;
+
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Year;
+import java.util.Calendar;
+import java.util.Date;
+
+import javafx.scene.chart.PieChart.Data;
 
 public class TimeUtils {
 	static int year1=0;
@@ -38,6 +45,50 @@ public class TimeUtils {
 			return true;
 		
 		return false;
+	}
+	
+	public static String timestampToString(Timestamp timestamp){
+		   SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+	   	   String dateString = formatter.format(timestamp);
+	   	   return dateString;
+	}
+	
+	public static Date stringToDate(String string){
+		Date date=new Date();
+		DateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");  
+        try {
+			date = sdf.parse(string);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+        return date;
+	}
+	
+	public static int getYear(Date date){
+		Calendar calendar=Calendar.getInstance();
+		calendar.setTime(date);
+		
+		int y=calendar.get(Calendar.YEAR);
+		
+		return y;
+	}
+	
+	public static int getMonth(Date date){
+		Calendar calendar=Calendar.getInstance();
+		calendar.setTime(date);
+		
+		int m=calendar.get(Calendar.MONTH);
+		
+		return m+1;
+	}
+	
+	public static int getDay(Date date){
+		Calendar calendar=Calendar.getInstance();
+		calendar.setTime(date);
+		
+		int d=calendar.get(Calendar.DAY_OF_MONTH);
+		
+		return d;
 	}
 
 }

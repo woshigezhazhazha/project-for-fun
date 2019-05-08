@@ -30,7 +30,7 @@ public class main {
 			+ "latitude decimal(38,20),"
 			+ "longitude decimal(38,20))";
 	
-	private static final String setIsOpen="upate classInfo set isOpen=0";
+	private static final String setIsOpen="update classInfo set isOpen=0";
 
 	public static void main(String args[]){
 		//连接数据库

@@ -1,14 +1,19 @@
 package com.tizz.signin.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.tizz.signin.R;
+import com.tizz.signin.utils.App;
 
 public class StuSetting extends AppCompatActivity implements View.OnClickListener {
 
@@ -18,12 +23,14 @@ public class StuSetting extends AppCompatActivity implements View.OnClickListene
     private LinearLayout reglog;
     private LinearLayout signinInfo;
     private LinearLayout autoSignin;
+    private Button logout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stu_setting);
+        App.addActivity(this);
         initView();
     }
 
@@ -40,6 +47,8 @@ public class StuSetting extends AppCompatActivity implements View.OnClickListene
         signinInfo.setOnClickListener(this);
         autoSignin=(LinearLayout)findViewById(R.id.ll_autoSignin);
         autoSignin.setOnClickListener(this);
+        logout=(Button)findViewById(R.id.btn_logout);
+        logout.setOnClickListener(this);
     }
 
     @Override
@@ -63,6 +72,29 @@ public class StuSetting extends AppCompatActivity implements View.OnClickListene
             case R.id.ll_autoSignin:
                 Intent intent4=new Intent(StuSetting.this, AutoSignin.class);
                 startActivity(intent4);
+                break;
+            case R.id.btn_logout:
+                AlertDialog alertDialog=new AlertDialog.Builder(StuSetting.this)
+                        .setTitle("")
+                        .setMessage("确定退出登录吗?")
+                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SharedPreferences.Editor editor=getSharedPreferences("userInfo",
+                                        MODE_PRIVATE).edit();
+                                editor.putBoolean("isLogined",false);
+                                editor.commit();
+                                App.exit();
+                            }
+                        })
+                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which){
+                            }
+                        })
+                        .create();
+                alertDialog.show();
+
                 break;
         }
     }

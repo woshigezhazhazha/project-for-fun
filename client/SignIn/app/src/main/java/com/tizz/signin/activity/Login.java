@@ -46,7 +46,7 @@ public class Login extends AppCompatActivity implements View.OnClickListener{
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_login);
-        App.getInstance().addActivity(this);
+        App.addActivity(this);
         initView();
     }
 

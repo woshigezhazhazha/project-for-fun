@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        App.getInstance().addActivity(this);
+        App.addActivity(this);
         initViews();
         setLogined();
         initSpinner();
@@ -335,6 +335,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void autoSignin(){
         if(isLogined && isStudent && autoSignin){
+            if(firstClass.equals("")){
+                Toast.makeText(MainActivity.this,"请先添加课堂！",
+                        Toast.LENGTH_SHORT).show();
+                return;
+            }
             if(!signined){
                 signinTime.setVisibility(View.VISIBLE);
                 fingerprintSucceded=FingerprintDialogFragment.succed;
@@ -383,7 +388,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             Toast.LENGTH_SHORT).show();
                     break;
                 }
+                if(firstClass.equals("")){
+                    Toast.makeText(MainActivity.this,"尚未添加任何课堂！",
+                            Toast.LENGTH_SHORT).show();
+                    break;
+                }
                 if(!signined){
+                    if(!isStudent){
+                        new SigninTask().execute();
+                        break;
+                    }
                     signinTime.setVisibility(View.INVISIBLE);
                     fingerprintSucceded=FingerprintDialogFragment.succed;
                     if(!fingerprintSucceded){
@@ -546,7 +560,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     else{
                         String time=TimeUtils.getSysTime();
-                        signinTime.setText("打开签到时间:"+time);
+                        //signinTime.setText("打开签到时间:"+time);
+                        signinTime.setText(latitude+"\n"+longitude);
                         signinTime.setVisibility(View.VISIBLE);
                         Toast.makeText(MainActivity.this,"打开签到成功！",Toast.LENGTH_SHORT).show();
                     }
@@ -706,7 +721,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent keyEvent){
         if(keyCode==KeyEvent.KEYCODE_BACK){
-            App.getInstance().exit();
+            App.exit();
             finish();
             return true;
         }

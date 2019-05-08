@@ -74,7 +74,7 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
         checkList=(ListView)findViewById(R.id.lv_checkList);
         checkClass=(Spinner)findViewById(R.id.sp_checkClass);
         checkType=(Spinner)findViewById(R.id.sp_checkKind);
-        initClaaAdapter();
+        initClassAdapter();
         checkClass();
         initKindAdapter();
         checkClass.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -115,7 +115,7 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                     });
 
                     final AlertDialog alertDialog=new AlertDialog.Builder(ShowSigninInfo.this)
-                            .setTitle("选择专业")
+                            .setTitle("")
                             .setView(spinner)
                             .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                                 @Override
@@ -140,7 +140,7 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
                     final DatePicker datePicker=new DatePicker(ShowSigninInfo.this);
                     datePicker.setMaxDate(System.currentTimeMillis());
                     final AlertDialog alertDialog=new AlertDialog.Builder(ShowSigninInfo.this)
-                            .setTitle("选择时间")
+                            .setTitle("")
                             .setView(datePicker)
                             .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                                 @Override
@@ -167,7 +167,7 @@ public class ShowSigninInfo extends AppCompatActivity implements View.OnClickLis
         });
     }
 
-    private void initClaaAdapter(){
+    private void initClassAdapter(){
         DBUtils dbUtils=new DBUtils(ShowSigninInfo.this,"userInfo.db",null,2);
         SQLiteDatabase db=dbUtils.getWritableDatabase();
         Cursor cursor=db.query("TeacherClass",

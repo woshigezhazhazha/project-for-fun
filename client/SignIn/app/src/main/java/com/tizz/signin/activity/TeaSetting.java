@@ -1,8 +1,10 @@
 package com.tizz.signin.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
@@ -28,7 +30,7 @@ public class TeaSetting extends AppCompatActivity implements View.OnClickListene
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tea_setting);
-        App.getInstance().addActivity(this);
+        App.addActivity(this);
         initView();
     }
 
@@ -72,11 +74,27 @@ public class TeaSetting extends AppCompatActivity implements View.OnClickListene
                 startActivity(intent4);
                 break;
             case R.id.btn_logout:
-                SharedPreferences.Editor editor=getSharedPreferences("userInfo",MODE_PRIVATE).edit();
-                editor.putBoolean("isLogined",false);
-                editor.commit();
-                App.getInstance().exit();
-                finish();
+                AlertDialog alertDialog=new AlertDialog.Builder(TeaSetting.this)
+                        .setTitle("")
+                        .setMessage("确定退出登录吗?")
+                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                SharedPreferences.Editor editor=getSharedPreferences("userInfo",
+                                        MODE_PRIVATE).edit();
+                                editor.putBoolean("isLogined",false);
+                                editor.commit();
+                                App.exit();
+                            }
+                        })
+                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which){
+                            }
+                        })
+                        .create();
+                alertDialog.show();
+
                 break;
         }
     }

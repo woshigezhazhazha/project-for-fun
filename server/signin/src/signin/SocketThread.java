@@ -1,16 +1,21 @@
 package signin;
 
 import java.io.DataInputStream;
+
 import java.io.DataOutputStream;
+import java.math.BigDecimal;
 import java.net.Socket;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Logger;
+
+import org.omg.CosNaming.NamingContextExtPackage.StringNameHelper;
 
 import javafx.scene.chart.PieChart.Data;
 
@@ -198,7 +203,10 @@ public class SocketThread implements Runnable {
 				
 				//update the signin location
 				double latitude=inputStream.readDouble();
+				System.out.println(latitude);			
+				
 				double longitude=inputStream.readDouble();
+				System.out.println(longitude);
 				String updateLatitude="update classInfo set latitude="+latitude+" where name='"+name+"'";
 				String updateLongitude="update classInfo set longitude="+longitude+" where name='"+name+"'";
 				int updatela=DBUtils.update(connection, updateLatitude);
@@ -241,12 +249,13 @@ public class SocketThread implements Runnable {
 					//check the location
 					double userLatitude=inputStream.readDouble();
 					double userLongitude=inputStream.readDouble();
-				
+			
+					/*
 					if(!DistanceUtils.isBetweenDistance(classLongitude, classLatitude, userLongitude, userLatitude)){
 						outputStream.writeInt(-3);
 						return;
 					}
-			
+					*/
 					
 					
 					int stuNum=inputStream.readInt();
@@ -267,6 +276,8 @@ public class SocketThread implements Runnable {
 													
 					    }
 					
+						
+						
 					String insertSignin="insert into "+className+"课堂签到信息 values("+stuNum+",'"+time+"')";
 					String updateSigninTime="update "+className+"课堂学生信息 set lastSigninTime='"+time+"' where stuId='"+stuId+"'";
 					int result=DBUtils.insert(connection, insertSignin);
@@ -335,7 +346,7 @@ public class SocketThread implements Runnable {
             	while(resultSet.next()){
             			String name=resultSet.getString("name");
             			String stuid=resultSet.getString("idnum");
-            			Date date=resultSet.getDate("signinTime");
+            			Timestamp date=resultSet.getTimestamp("signinTime");
             			String time=df.format(date);
             			String dataReturned=name+"("+stuid+")\n签到:"+time;
             			outputStream.writeUTF(dataReturned);
@@ -356,7 +367,7 @@ public class SocketThread implements Runnable {
             	while(resultSet.next()){
             			String name=resultSet.getString("name");
             			String stuid=resultSet.getString("idnum");
-            			Date date=resultSet.getDate("signinTime");
+            			Timestamp date=resultSet.getTimestamp("signinTime");
             			String time=df.format(date);
             			String dataReturned=name+"("+stuid+")\n签到:"+time;
             			outputStream.writeUTF(dataReturned);
@@ -370,35 +381,42 @@ public class SocketThread implements Runnable {
             	int year=inputStream.readInt();
             	int month=inputStream.readInt();
             	int day=inputStream.readInt();
-            	String getDate="select * from "+className+"课堂签到信息";
+            	System.out.println("客户端 "+year+month+day);
+            	//String getDate="select * from "+className+"课堂签到信息";
+            	String getData="select studentReg.name,studentReg.idnum,studentReg.major,"+className+"课堂签到信息.signinTime "
+        				+ "from "+className+"课堂签到信息,studentReg "
+        						+ "where "+className+"课堂签到信息.stuNum=studentReg.num";
             	boolean find=false;
-            	Date date = null;
-            	resultSet=DBUtils.select(connection, getDate);
+            	Timestamp time = null;
+            	Date date=null;
+            	String time2=null;
+            	resultSet=DBUtils.select(connection, getData);
             	while(resultSet.next()){
-            		date=resultSet.getDate("signinTime");
-            		int y=date.getYear();
-            		int m=date.getMonth();
-            		int d=date.getDay();
+            		time=resultSet.getTimestamp("signinTime");
+            		time2=TimeUtils.timestampToString(time);
+            		date=TimeUtils.stringToDate(time2);
+            		
+            		
+            		int y=TimeUtils.getYear(date);
+            		int m=TimeUtils.getMonth(date);
+            		int d=TimeUtils.getDay(date);
+            		
+            		System.out.println("服务器 "+date+" "+y+" "+m+" "+d);
             		if(y==year && m==month && d==day){
-            			find=true;
-            			break;
-            		}
-            	}
-            	if(find){
-            		String getData="select name,idnum,signinTime "
-            				+ "from "+className+"课堂签到信息,studentReg "
-            						+ "where "+className+"课堂签到信息.signinTime="+date+" "
-            								+ "and "+className+"课堂签到信息.stuNum=studentReg.num";
-            		resultSet=DBUtils.select(connection, getData);
-            		while(resultSet.next()){
             			String name=resultSet.getString("name");
             			String stuid=resultSet.getString("idnum");
             			String stumajor=resultSet.getString("major");
             			
-            			String dataReturned=name+"("+stuid+")\n("+stumajor+")";
+            			
+            			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            			String stime=df.format(time);
+
+            			String dataReturned=name+"("+stuid+")("+stumajor+")\n"+stime;
             			outputStream.writeUTF(dataReturned);
+            			
             		}
             	}
+            	
             	outputStream.writeUTF("###the sigin info for this time is over!!!");
 			}
 			

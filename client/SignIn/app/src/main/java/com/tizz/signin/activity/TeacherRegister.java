@@ -49,7 +49,7 @@ public class TeacherRegister extends AppCompatActivity implements View.OnClickLi
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teacher_register);
-        App.getInstance().addActivity(this);
+        App.addActivity(this);
         initView();
     }
 
