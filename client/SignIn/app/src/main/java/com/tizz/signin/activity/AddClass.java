@@ -153,6 +153,9 @@ public class AddClass extends AppCompatActivity implements View.OnClickListener 
                 case -5:
                     Toast.makeText(AddClass.this,"不存在该课堂！",Toast.LENGTH_SHORT).show();
                     break;
+                case -10:
+                    Toast.makeText(AddClass.this,"你已添加该课堂！",Toast.LENGTH_SHORT).show();
+                    break;
             }
         }
     }

@@ -180,6 +180,13 @@ public class SocketThread implements Runnable {
 				String stuid=inputStream.readUTF();
 				String major=inputStream.readUTF();
 				
+				String selectSql="select * from "+className+"课堂学生信息 where stuName='"+name+"' and stuId='"+stuid+"' and stuMajor='"+major+"'";
+				resultSet=DBUtils.select(connection, selectSql);
+				if(resultSet.next()){
+					outputStream.writeInt(-10);
+					return;
+				}
+				
 				String insertSql="insert into "+className+"课堂学生信息 values('"+name+"','"+stuid+"','"+major+"',null)";
 				int result=DBUtils.insert(connection, insertSql);
 				if(result>0)
@@ -250,12 +257,6 @@ public class SocketThread implements Runnable {
 					double userLatitude=inputStream.readDouble();
 					double userLongitude=inputStream.readDouble();
 			
-					/*
-					if(!DistanceUtils.isBetweenDistance(classLongitude, classLatitude, userLongitude, userLatitude)){
-						outputStream.writeInt(-3);
-						return;
-					}
-					*/
 					
 					
 					int stuNum=inputStream.readInt();
@@ -275,8 +276,12 @@ public class SocketThread implements Runnable {
 							}
 													
 					    }
-					
+					}
 						
+					if(!DistanceUtils.isBetweenDistance(classLongitude, classLatitude, userLongitude, userLatitude)){
+						outputStream.writeInt(-3);
+						return;
+					}
 						
 					String insertSignin="insert into "+className+"课堂签到信息 values("+stuNum+",'"+time+"')";
 					String updateSigninTime="update "+className+"课堂学生信息 set lastSigninTime='"+time+"' where stuId='"+stuId+"'";
@@ -293,7 +298,6 @@ public class SocketThread implements Runnable {
 					else{
 						outputStream.writeInt(-4);
 					}
-				}
 				}
 				else{
 					//the class is not open
@@ -419,6 +423,22 @@ public class SocketThread implements Runnable {
             	
             	outputStream.writeUTF("###the sigin info for this time is over!!!");
 			}
+			
+			
+            else if(cmdkind.equals("updateTimeLimit")){
+            	String className=inputStream.readUTF();
+            	int timeLimt=inputStream.readInt();
+            	
+            	String updateSql="update classInfo set timeLimit="+timeLimt+" where name='"+className+"'";
+            	
+            	int result=DBUtils.update(connection, updateSql);
+            	if(result>0){
+            		outputStream.writeInt(1);
+            	}
+            	else{
+            		outputStream.writeInt(-1);
+            	}
+            }
 			
 			
 			inputStream.close();

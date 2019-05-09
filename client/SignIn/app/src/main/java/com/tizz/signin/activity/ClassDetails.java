@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -35,6 +36,8 @@ public class ClassDetails extends AppCompatActivity implements View.OnClickListe
     private DataOutputStream outputStream;
     private DataInputStream inputStream;
     private TextView title;
+    private String classTimeLimit;
+    private Button updateTimeLimit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,9 +56,11 @@ public class ClassDetails extends AppCompatActivity implements View.OnClickListe
         className=intent.getStringExtra("className");
         title=(TextView)findViewById(R.id.tv_common);
         title.setText(className);
+        updateTimeLimit=(Button)findViewById(R.id.btn_update);
+        updateTimeLimit.setOnClickListener(this);
 
         //get timeLimit for this class
-        String classTimeLimit="100";
+        classTimeLimit="100";
         DBUtils dbUtils=new DBUtils(ClassDetails.this,
                 "userInfo.db",null,2);
         SQLiteDatabase db=dbUtils.getWritableDatabase();
@@ -77,6 +82,12 @@ public class ClassDetails extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()){
             case R.id.ll_back:
                 ClassDetails.this.finish();
+                break;
+            case R.id.btn_update:
+                Intent intent=new Intent(ClassDetails.this, UpdateTimeLimit.class);
+                intent.putExtra("className",className);
+                intent.putExtra("timeLimit",classTimeLimit);
+                startActivity(intent);
                 break;
         }
     }

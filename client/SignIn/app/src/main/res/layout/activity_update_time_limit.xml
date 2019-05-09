@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.UpdateTimeLimit"
+    android:orientation="vertical">
+
+    <include layout="@layout/title_common"/>
+
+    <TextView
+        android:id="@+id/tv_oldTimeLimit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/colorBlack"
+        android:text="课堂"
+        android:layout_marginTop="100dp"
+        android:layout_gravity="center_horizontal"
+        android:textSize="16sp"/>
+
+    <Spinner
+        android:id="@+id/sp_newTimeLimit"
+        android:layout_width="250dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="30dp"
+        android:layout_gravity="center_horizontal">
+    </Spinner>
+
+    <Button
+        android:id="@+id/btn_updateTimeLimit"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:text="确定修改"
+        android:textColor="@color/colorWhite"
+        android:textSize="16sp"
+        android:background="@color/colorPrimary"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="40dp"/>
+
+</LinearLayout>

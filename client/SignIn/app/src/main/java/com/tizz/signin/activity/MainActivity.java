@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String DEFAULT_KEY_NAME = "default_key";
     private KeyStore keyStore;
     private boolean fingerprintSucceded=false;
+    private int autoSigninTimes=0;
 
 
     @Override
@@ -314,6 +315,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         signinTime=(TextView)findViewById(R.id.tv_signinTime);
         spinner=(Spinner)findViewById(R.id.sp_classList);
 
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -330,7 +332,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }).start();
 
-        location= LocationUtils.getLocation(MainActivity.this);
+        LocationUtils.initLocationManager(MainActivity.this);
+
     }
 
     private void autoSignin(){
@@ -493,14 +496,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             try{
                 if(firstClass==null)
                     return -20;
-                if(location==null){
-                    location=LocationUtils.getLocation(MainActivity.this);
-                }
-                if(location!=null){
-                    latitude=location.getLatitude();
-                    longitude=location.getLongitude();
-                }
-                else{
+
+                latitude=LocationUtils.getLatitude();
+                longitude=LocationUtils.getLongitude();
+                if(latitude==0 && longitude==0){
                     return -5;
                 }
                 Socket socket=new Socket(SocketUtils.ip,6000);
@@ -560,8 +559,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     else{
                         String time=TimeUtils.getSysTime();
-                        //signinTime.setText("打开签到时间:"+time);
-                        signinTime.setText(latitude+"\n"+longitude);
+                        signinTime.setText("打开签到时间:"+time);
                         signinTime.setVisibility(View.VISIBLE);
                         Toast.makeText(MainActivity.this,"打开签到成功！",Toast.LENGTH_SHORT).show();
                     }
@@ -620,15 +618,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(firstClass==null)
                     return -20;
                 int count=0;
-                while(location==null){
-                    location=LocationUtils.getLocation(MainActivity.this);
+                while(latitude==0 || longitude==0){
+                    latitude=LocationUtils.getLatitude();
+                    longitude=LocationUtils.getLongitude();
                     Thread.sleep(1000);
                     count++;
                     if(count==10)
                         return -10;
                 }
-                latitude=location.getLatitude();
-                longitude=location.getLongitude();
+
 
                 Socket socket=new Socket(SocketUtils.ip,6000);
                 count=0;
@@ -695,6 +693,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     signinTime.setVisibility(View.VISIBLE);
                     Toast.makeText(MainActivity.this,"签到成功！",
                             Toast.LENGTH_SHORT).show();
+                    break;
+                case -3:
+                    if(isStudent){
+                        Toast.makeText(MainActivity.this,"不在签到范围之内！",Toast.LENGTH_SHORT).show();
+                        autoSigninTimes++;
+                        if(autoSigninTimes<10){
+                            autoSignin();
+                        }
+                    }
                     break;
                 case -10:
                     Toast.makeText(MainActivity.this,"无法获取位置，请稍后手动签到！",
