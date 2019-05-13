@@ -209,6 +209,7 @@ public class SocketThread implements Runnable {
 				}
 				
 				//update the signin location
+				System.out.println("teacher:");
 				double latitude=inputStream.readDouble();
 				System.out.println(latitude);			
 				
@@ -254,8 +255,11 @@ public class SocketThread implements Runnable {
 				}
 				if(classOpen==1){
 					//check the location
+					System.out.println("student:");
 					double userLatitude=inputStream.readDouble();
+					System.out.println(userLatitude);
 					double userLongitude=inputStream.readDouble();
+					System.out.println(userLongitude);
 			
 					
 					
@@ -269,7 +273,8 @@ public class SocketThread implements Runnable {
 						Timestamp lasttime=resultSet.getTimestamp("lastSigninTime");
 						if(lasttime!=null){
 							boolean isInTimeLimit=TimeUtils.isInTimeLimit(time, lasttime, timeLimit);
-							System.out.println(isInTimeLimit);
+							isInTimeLimit=true;
+							
 							if(!isInTimeLimit){
 								outputStream.writeInt(-50);
 								return;

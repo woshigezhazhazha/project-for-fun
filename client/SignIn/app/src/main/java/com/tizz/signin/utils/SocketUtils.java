@@ -9,6 +9,7 @@ import java.net.Socket;
 public class SocketUtils {
     private Socket socket;
     public static final String ip="192.168.43.253";
+    //public static final String ip="10.14.125.217";
     public static int port=6000;
     private boolean isConnected;
     private boolean isRegistered;
